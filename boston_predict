@@ -1,0 +1,71 @@
+# coding = utf-8
+
+import numpy as np
+from sklearn import datasets
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+from matplotlib import pyplot as plt
+
+# 从本地中导出波士顿房价数据
+boston = datasets.load_boston()
+x_data = boston.data
+y_data = boston.target
+name_data = boston.feature_names
+
+# 使用matplotlib绘制散点图查看数据间关系，观测出RM，LSTAT特征与房价相关性更大
+# for i in range(x_data.shape[1]):
+#     plt.subplot()
+#     plt.scatter(x_data[:,i],y_data,s=20)
+#     plt.title(name_data[i])
+#     plt.show()
+
+# 数据预处理，删除y_data中等于50的异常值
+num = []
+for i in range(len(y_data)):
+    if y_data[i] == 50:
+        num.append(i)
+
+x_data = np.delete(x_data,num,axis=0)
+y_data = np.delete(y_data,num,axis=0)
+
+# 数据预处理，删除相关性较小的特征值
+# j = []
+# for i in range(len(name_data)):
+#     if name_data[i] == 'RM' or name_data[i] == 'LSTAT':
+#         continue
+#     j.append(i)
+#
+# x_data = np.delete(x_data,j,axis=1)
+# print (x_data.shape)
+# print (y_data.shape)
+
+# 将数据划分为测试集和训练集
+x_train,x_test,y_train,y_test = train_test_split(x_data,y_data,random_state=0,test_size=0.2)
+print (len(x_train))
+print(len(x_test))
+print(len(y_train))
+print(len(y_test))
+
+# 数据归一化
+min_max_scaler = MinMaxScaler()
+x_train = min_max_scaler.fit_transform(x_train)
+x_test = min_max_scaler.fit_transform(x_test)
+y_train = min_max_scaler.fit_transform(y_train.reshape(-1,1))
+y_test = min_max_scaler.fit_transform(y_test.reshape(-1,1))
+
+# 构建简单线性回归模型
+lr = LinearRegression()
+# 使用训练数据对参数进行估计
+lr.fit(x_train,y_train)
+print ("系数:%s"%list(lr.coef_))
+print ("截距:%s"%lr.intercept_)
+
+# 回归预测
+y_predict = lr.predict(x_test)
+# 使用r2_score对模型评估
+score = r2_score(y_test,y_predict)
+print("本次模型判定系数为:%s"%score)
+
+
